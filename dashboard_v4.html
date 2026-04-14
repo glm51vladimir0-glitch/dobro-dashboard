@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ДОБРО — Аналитический дашборд</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root{--p:#1a56db;--pl:#eff6ff;--d:#111827;--g:#6b7280;--gl:#f3f4f6;--b:#e5e7eb}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,'Segoe UI',system-ui,sans-serif;background:var(--gl);color:var(--d);line-height:1.5}
+.hd{background:var(--d);padding:20px 32px;display:flex;align-items:center;gap:16px}
+.hd-icon{width:44px;height:44px;background:var(--p);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.hd h1{font-size:20px;font-weight:700;color:#fff}
+.hd-sub{font-size:12px;color:#9ca3af;margin-top:1px}
+.hd-stats{margin-left:auto;display:flex;gap:20px}
+.hd-st{text-align:right}
+.hd-st .v{font-size:16px;font-weight:700;color:#fff}
+.hd-st .l{font-size:10px;color:#9ca3af}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 32px;background:#fff;border-bottom:1px solid var(--b)}
+.kpi>div{text-align:center;padding:10px 4px}
+.kpi .v{font-size:24px;font-weight:700;color:var(--d)}
+.kpi .l{font-size:10px;color:var(--g);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+.kpi .s{font-size:10px;color:var(--g)}
+.ft{display:flex;gap:8px;padding:12px 32px;background:#fff;border-bottom:1px solid var(--b);flex-wrap:wrap;align-items:center}
+.ft label{font-size:11px;font-weight:600;color:var(--g);display:flex;align-items:center;gap:4px}
+.ft select{padding:5px 10px;border-radius:5px;border:1px solid var(--b);font-size:12px;background:#fff;max-width:180px}
+.tag{display:inline-block;padding:3px 8px;border-radius:14px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--b);background:#fff;transition:.15s}
+.tag.on{background:var(--p);color:#fff;border-color:var(--p)}
+.ct{max-width:1400px;margin:0 auto;padding:16px 32px 32px}
+.sec{margin-bottom:24px}
+.sec h2{font-size:15px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.pill{font-size:10px;background:var(--pl);color:var(--p);padding:1px 7px;border-radius:8px;font-weight:600}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g1{display:grid;grid-template-columns:1fr;gap:14px}
+.cd{background:#fff;border-radius:8px;padding:14px;border:1px solid var(--b)}
+.cd h3{font-size:12px;font-weight:600;color:var(--g);margin-bottom:6px}
+.ch{position:relative;height:280px}
+.ch.lg{height:360px}
+.tw{max-height:460px;overflow-y:auto;border:1px solid var(--b);border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:var(--gl);padding:6px 8px;text-align:left;font-weight:600;color:var(--g);position:sticky;top:0;font-size:10px;text-transform:uppercase;letter-spacing:.2px}
+td{padding:5px 8px;border-bottom:1px solid var(--gl)}
+tr.fc td{color:#7c3aed}
+.badge{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700}
+.bf{background:#d1fae5;color:#065f46}
+.bfc{background:#ede9fe;color:#5b21b6}
+.ft2{text-align:center;padding:16px;font-size:10px;color:var(--g)}
+@media(max-width:900px){.g2{grid-template-columns:1fr}.kpi{grid-template-columns:1fr 1fr}.hd-stats{display:none}.ct,.kpi,.ft{padding-left:12px;padding-right:12px}}
+</style>
+</head>
+<body>
+<div class="hd">
+  <div class="hd-icon">📊</div>
+  <div><h1>Платформа ДОБРО</h1><div class="hd-sub">Аналитический дашборд • Источник: выгрузки Жмурко</div></div>
+  <div class="hd-stats">
+    <div class="hd-st"><div class="v" id="hV">—</div><div class="l">Волонтёров</div></div>
+    <div class="hd-st"><div class="v" id="hF">—</div><div class="l">Прогноз 2030</div></div>
+    <div class="hd-st"><div class="v" id="hA">—</div><div class="l">Действий</div></div>
+  </div>
+</div>
+<div class="kpi" id="kpi"></div>
+<div class="ft">
+  <label>Регион <select id="fR"><option value="all">Все</option></select></label>
+  <label>Направление <select id="fA"><option value="all">Все</option></select></label>
+  <span style="font-size:11px;font-weight:600;color:var(--g)">Возраст:</span>
+  <span id="aT"></span>
+</div>
+<div class="ct">
+  <div class="sec"><div class="sec"><h2>Волонтёры — накопительный итог <span class="pill">факт + прогноз</span></h2><div class="g1"><div class="cd"><h3>Кумулятивное число волонтёров, РФ</h3><div class="ch lg"><canvas id="cV"></canvas></div></div></div></div></div>
+  <div class="sec"><div class="sec"><h2>Регистрации и действия</h2><div class="g2"><div class="cd"><h3>Регистрации — накопительно</h3><div class="ch"><canvas id="cR"></canvas></div></div><div class="cd"><h3>Действия — накопительно</h3><div class="ch"><canvas id="cA"></canvas></div></div></div></div></div>
+  <div class="sec"><div class="sec"><h2>Прирост волонтёров по годам <span class="pill">чел. и %</span></h2><div class="g1"><div class="cd"><h3>Абсолютный и процентный прирост</h3><div class="ch"><canvas id="cG"></canvas></div></div></div></div></div>
+  <div class="sec"><div class="sec"><h2>Демография по возрастам <span class="pill">регистрации кумулятивно</span></h2><div class="g1"><div class="cd"><h3>Регистрации по возрастным группам</h3><div class="ch lg"><canvas id="cD"></canvas></div></div></div></div></div>
+  <div class="sec"><div class="sec"><h2>Направления активности</h2><div class="g1"><div class="cd"><h3>Топ-15 направлений</h3><div class="ch lg"><canvas id="cT"></canvas></div></div></div></div></div>
+  <div class="sec"><div class="sec"><h2>Рейтинг регионов <span class="pill">кумулятивно 2025</span></h2><div class="g1"><div class="cd"><h3>Топ-15 регионов по числу регистраций</h3><div class="ch lg"><canvas id="cRg"></canvas></div></div></div></div></div>
+  <div class="sec"><div class="sec"><h2>Прогнозная таблица</h2><div class="cd"><div class="tw"><table><thead><tr><th>Год</th><th></th><th>Волонтёры</th><th>Прирост</th><th>Регистрации</th><th>Действия</th><th>Нас.</th><th>Проникн.</th><th>Дов. интервал</th></tr></thead><tbody id="tB"></tbody></table></div></div></div></div>
+</div>
+<div class="ft2">Платформа ДОБРО • Источник: выгрузки Жмурко • 2026</div>
+<script>
+let D={};
+const fmt=new Intl.NumberFormat('ru-RU');
+const fS=v=>{if(v==null)return'—';if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return(v/1e3).toFixed(0)+'K';return v};
+const aObj=(ys,vs)=>{const o={};ys.forEach((y,i)=>o[y]=vs[i]);return o};
+const aCols=['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899'];
+
+function fc(abj,fy,K){
+  const ys=Object.keys(abj).map(Number).sort((a,b)=>a-b),vs=ys.map(y=>abj[y]);
+  if(ys.length<2)return{v:fy.map(()=>null),u:fy.map(()=>null),l:fy.map(()=>null)};
+  const t0=ys[ys.length-1],P0=vs[vs.length-1];
+  if(P0<=0)return{v:fy.map(()=>0),u:fy.map(()=>0),l:fy.map(()=>0)};
+  const n=Math.min(3,vs.length);let sR=0,c=0;
+  for(let i=vs.length-n;i<vs.length-1;i++){if(vs[i]>0){sR+=(vs[i+1]-vs[i])/(vs[i]*(ys[i+1]-ys[i]));c++;}}
+  let r=Math.max(0.03,Math.min(c>0?sR/c:.2,1.5));
+  K=K||15e6;
+  const res={v:[],u:[],l:[]};
+  for(const y of fy){
+    if(y<=t0){const idx=ys.indexOf(y);const v=idx>=0?vs[idx]:null;res.v.push(v);res.u.push(v);res.l.push(v);}
+    else{const dt=y-t0;let val;if(P0>=K*.98)val=Math.min(P0*1.003*dt,K);else val=K/(1+((K-P0)/P0)*Math.exp(-r*dt));val=Math.max(0,Math.round(val));const df=dt/(2030-t0);const ci=val*(.08+.2*df);res.v.push(val);res.u.push(Math.round(val+ci));res.l.push(Math.round(Math.max(P0,val-ci)));}
+  }
+  return res;
+}
+
+function oP(l){return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:10,font:{size:10}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt.format(c.parsed.y)} ${l}`}}},scales:{y:{beginAtZero:true,ticks:{callback:fS},grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}};}
+
+let ageChart;
+function init(){
+  const ay=D.actual_years,fy=D.forecast_years,la=ay[ay.length-1];
+  const vol=D.national_volunteers_cum,reg=D.registrations_cum,act=D.actions_cum;
+  const vFc=fc(aObj(ay,vol),fy),rFc=fc(aObj(ay,reg),fy,30e6),aFc=fc(aObj(ay,act),fy,100e6);
+  const v2030=vFc.v[vFc.v.length-1];
+  const s=D.summary;
+
+  // Header
+  document.getElementById('hV').textContent=fS(s.volunteers_cumulative_2025);
+  document.getElementById('hF').textContent=fS(v2030);
+  document.getElementById('hA').textContent=fS(s.actions_cumulative_2025);
+
+  // KPI
+  const pen=v2030&&D.population['2030']?(v2030/(D.population['2030']*1e6)*100).toFixed(1):'—';
+  document.getElementById('kpi').innerHTML=[
+    {v:fS(s.volunteers_cumulative_2025),l:'Волонтёров',s:'2025 накопительно'},
+    {v:fS(v2030),l:'Прогноз 2030',s:pen+'% населения'},
+    {v:fS(s.registrations_cumulative_2025),l:'Регистраций',s:'2025 накопительно'},
+    {v:fS(s.actions_cumulative_2025),l:'Действий',s:'2025 накопительно'},
+  ].map(k=>`<div><div class="v">${k.v}</div><div class="l">${k.l}</div><div class="s">${k.s}</div></div>`).join('');
+
+  buildFilters();
+
+  // Volunteers
+  new Chart(document.getElementById('cV'),{type:'line',data:{labels:fy,datasets:[
+    {label:'Факт',data:fy.map((y,i)=>y<=la?vol[ay.indexOf(y)]??null:null),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',borderWidth:2.5,fill:true,pointRadius:3,tension:.3},
+    {label:'Прогноз',data:fy.map((y,i)=>y>=la?(y===la?vol[ay.length-1]:vFc.v[i]):null),borderColor:'#7c3aed',borderDash:[5,3],borderWidth:2,fill:false,pointRadius:2,tension:.3},
+    {label:'ВГ',data:fy.map((y,i)=>y>la?vFc.u[i]:null),borderColor:'rgba(124,58,237,.12)',borderWidth:1,fill:false,pointRadius:0,tension:.3},
+    {label:'НГ',data:fy.map((y,i)=>y>la?vFc.l[i]:null),borderColor:'rgba(124,58,237,.12)',backgroundColor:'rgba(124,58,237,.05)',borderWidth:1,fill:'-1',pointRadius:0,tension:.3},
+  ]},options:oP('чел.')});
+
+  // Registrations
+  new Chart(document.getElementById('cR'),{type:'line',data:{labels:fy,datasets:[
+    {label:'Факт',data:fy.map((y,i)=>y<=la?reg[ay.indexOf(y)]??null:null),borderColor:'#0891b2',backgroundColor:'rgba(8,145,178,.08)',borderWidth:2,fill:true,pointRadius:2,tension:.3},
+    {label:'Прогноз',data:fy.map((y,i)=>y>=la?(y===la?reg[ay.length-1]:rFc.v[i]):null),borderColor:'#7c3aed',borderDash:[5,3],borderWidth:1.5,fill:false,pointRadius:2,tension:.3},
+  ]},options:oP('рег.')});
+
+  // Actions
+  new Chart(document.getElementById('cA'),{type:'line',data:{labels:fy,datasets:[
+    {label:'Факт',data:fy.map((y,i)=>y<=la?act[ay.indexOf(y)]??null:null),borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',borderWidth:2,fill:true,pointRadius:2,tension:.3},
+    {label:'Прогноз',data:fy.map((y,i)=>y>=la?(y===la?act[ay.length-1]:aFc.v[i]):null),borderColor:'#7c3aed',borderDash:[5,3],borderWidth:1.5,fill:false,pointRadius:2,tension:.3},
+  ]},options:oP('действ.')});
+
+  // Growth
+  const ywG=ay.slice(1);
+  new Chart(document.getElementById('cG'),{type:'bar',data:{labels:ywG,datasets:[
+    {label:'Прирост (чел.)',data:D.national_volunteers_per_year,backgroundColor:'#3b82f6',borderRadius:3,yAxisID:'y'},
+    {label:'Прирост %',data:D.national_growth_pct,type:'line',borderColor:'#f59e0b',borderWidth:2,pointRadius:3,yAxisID:'y1',tension:.3},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:10,font:{size:10}}}},scales:{y:{beginAtZero:true,ticks:{callback:fS},grid:{color:'rgba(0,0,0,.04)'}},y1:{position:'right',beginAtZero:true,ticks:{callback:v=>v+'%'},grid:{display:false}},x:{grid:{display:false}}}}});
+
+  // Age
+  buildAgeChart();
+
+  // Top actions
+  new Chart(document.getElementById('cT'),{type:'bar',data:{labels:D.top_actions.map(a=>a.length>45?a.slice(0,43)+'…':a),datasets:[{label:'Действий',data:D.top_actions_vals,backgroundColor:'#7c3aed',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:fS}}}}});
+
+  // Top regions
+  new Chart(document.getElementById('cRg'),{type:'bar',data:{labels:D.top_regions,datasets:[{label:'Регистраций',data:D.top_regions_vals,backgroundColor:'#2563eb',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:fS}}}}});
+
+  // Table
+  buildTable();
+}
+
+function buildFilters(){
+  const sr=document.getElementById('fR');
+  D.all_regions.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;sr.appendChild(o);});
+  const sa=document.getElementById('fA');
+  D.all_actions.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;sa.appendChild(o);});
+  const cont=document.getElementById('aT');
+  D.age_groups.forEach((a,i)=>{
+    const t=document.createElement('span');t.className='tag on';t.textContent=a;
+    t.style.cssText=`background:${aCols[i%aCols.length]};color:#fff;border-color:${aCols[i%aCols.length]}`;
+    t.onclick=()=>{
+      if(t.classList.contains('on')){t.classList.remove('on');t.style.background='#fff';t.style.color='var(--d)';t.style.borderColor='var(--b)';}
+      else{t.classList.add('on');t.style.background=aCols[i%aCols.length];t.style.color='#fff';t.style.borderColor=aCols[i%aCols.length];}
+      rebuildAge();
+    };
+    cont.appendChild(t);
+  });
+}
+
+let activeAges=new Set();
+function buildAgeChart(){
+  const ay=D.actual_years,fy=D.forecast_years,la=ay[ay.length-1];
+  const ba=D.registrations_by_age_cum;
+  activeAges=new Set(D.age_groups);
+  const ds=[];
+  D.age_groups.forEach((g,gi)=>{
+    const actual=ba[g];if(!actual)return;
+    const f=fc(aObj(ay,actual),fy,5e6);
+    ds.push({label:g,data:fy.map((y,i)=>y<=la?(actual[ay.indexOf(y)]??null):f.v[i]),borderColor:aCols[gi%aCols.length],borderWidth:2,fill:false,pointRadius:2,tension:.3});
+  });
+  ageChart=new Chart(document.getElementById('cD'),{type:'line',data:{labels:fy,datasets:ds},options:oP('рег.')});
+}
+function rebuildAge(){
+  if(!ageChart)return;
+  const ay=D.actual_years,fy=D.forecast_years||D.forecast_years,la=ay[ay.length-1];
+  const ba=D.registrations_by_age_cum;
+  const tags=document.querySelectorAll('#aT .tag');
+  const ds=[];
+  D.age_groups.forEach((g,gi)=>{
+    if(!tags[gi]||!tags[gi].classList.contains('on'))return;
+    const actual=ba[g];if(!actual)return;
+    const f=fc(aObj(ay,actual),fy,5e6);
+    ds.push({label:g,data:fy.map((y,i)=>y<=la?(actual[ay.indexOf(y)]??null):f.v[i]),borderColor:aCols[gi%aCols.length],borderWidth:2,fill:false,pointRadius:2,tension:.3});
+  });
+  ageChart.data.datasets=ds;ageChart.update();
+}
+
+function buildTable(){
+  const ay=D.actual_years,fy=D.forecast_years,la=ay[ay.length-1];
+  const vol=D.national_volunteers_cum,reg=D.registrations_cum,act=D.actions_cum;
+  const vFc=fc(aObj(ay,vol),fy),rFc=fc(aObj(ay,reg),fy,30e6),aFc=fc(aObj(ay,act),fy,100e6);
+  const tb=document.getElementById('tB');let prev=null;
+  for(let i=0;i<fy.length;i++){
+    const y=fy[i],isA=ay.includes(y);
+    const v=isA?vol[ay.indexOf(y)]:vFc.v[i];
+    const r=isA?reg[ay.indexOf(y)]:rFc.v[i];
+    const a=isA?act[ay.indexOf(y)]:aFc.v[i];
+    const pop=D.population[y];
+    const d=prev&&prev>0?((v-prev)/prev*100).toFixed(1)+'%':'—';
+    const pen=v&&pop?(v/(pop*1e6)*100).toFixed(2)+'%':'—';
+    const ci=isA?'—':`${fmt.format(vFc.l[i])} — ${fmt.format(vFc.u[i])}`;
+    const tr=document.createElement('tr');if(!isA)tr.classList.add('fc');
+    tr.innerHTML=`<td><b>${y}</b></td><td>${isA?'<span class="badge bf">Факт</span>':'<span class="badge bfc">Прогноз</span>'}</td><td>${fmt.format(v)}</td><td>${d}</td><td>${fmt.format(r)}</td><td>${fmt.format(a)}</td><td>${pop||'—'}</td><td>${pen}</td><td style="font-size:10px;color:#999">${ci}</td>`;
+    tb.appendChild(tr);prev=v;
+  }
+}
+
+/* LOAD */
+Object.assign(D, {"years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026], "actual_years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025], "forecast_years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030], "age_groups": ["0-13", "14-17", "18-24", "25-35", "36-55", "55+"], "registrations_cum": [617, 20398, 201804, 883270, 1779116, 2667184, 4018701, 5548444, 7284149, 8914616, 9385232], "registrations_per_year": [617, 19781, 181406, 681466, 895846, 888068, 1351517, 1529743, 1735705, 1630467, 470616], "registrations_by_age_cum": {"0-13": [1, 207, 8481, 35902, 57381, 132002, 204350, 302927, 399606, 496037, 523780], "14-17": [182, 6005, 81958, 189720, 343701, 682544, 1230245, 1894633, 2663489, 3360872, 3537967], "18-24": [283, 8588, 66472, 138069, 365307, 585593, 903285, 1253358, 1638561, 2013270, 2125115], "25-35": [101, 2334, 22125, 48300, 198789, 300750, 463186, 616081, 771578, 929276, 974492], "36-55": [29, 1605, 16730, 44596, 203713, 327004, 538427, 757869, 1024916, 1264036, 1349446], "55+": [8, 274, 4329, 13801, 41569, 70671, 110633, 155101, 217689, 283025, 306434]}, "actions_cum": [29922, 68723, 294616, 874145, 1861663, 3272493, 6069379, 11240399, 19322586, 28041835, 30577161], "actions_per_year": [29922, 38801, 225893, 579529, 987518, 1410830, 2796886, 5171020, 8082187, 8719249, 2535326], "growth_pct": [3206.0, 889.3, 337.7, 101.4, 49.9, 50.7, 38.1, 31.3, 22.4, 5.3], "all_actions": ["1.2. Донорство", "1.3. Наставничество 2.7. Подал заявку на то, чтобы стать наставником", "1.3. Наставничество 2.8. Подал заявку на помощь наставника", "1.4. Создание проектов", "1.5. Создание мероприятий", "1.6. Добро Взаимно (закрытые сделки)", "1.7. ВК добро (пожертвования)", "1.8. Малые добрые дела в ленте добрых дел", "2.1. Сертификаты Добро Университет", "2.2. Посещение мероприятий", "2.3. Пройденный путь волонтера", "2.5. Готов помогать проекту", "2.6. Готов помогать организации", "2.9. Подал заявку на меру поддержки Навигатора", "3.1. Подал заявку на конкурс", "3.2. Заявка в Добро Центр", "3.3. Написал статью в Добро Медиа", "4.1. Прикрепил Госуслуги", "4.2. Волонтер откликнулся на вакансию", "4.3. Выполнение заданий в рамках премии", "4.4. Проставил часы как организатор мероприятия", "4.5. Логинился > 2 раз в мобильном приложении", "4.6. Прошел опрос NPS", "4.7. Пригласил пользователя по реферальной ссылке", "4.8. Заполнил отзыв о мероприятии"], "top_actions": ["4.2. Волонтер откликнулся на вакансию", "2.6. Готов помогать организации", "4.1. Прикрепил Госуслуги", "2.1. Сертификаты Добро Университет", "4.5. Логинился > 2 раз в мобильном приложении", "1.2. Донорство", "4.8. Заполнил отзыв о мероприятии", "2.5. Готов помогать проекту", "4.6. Прошел опрос NPS", "2.3. Пройденный путь волонтера", "4.4. Проставил часы как организатор мероприятия", "3.2. Заявка в Добро Центр", "2.2. Посещение мероприятий", "4.7. Пригласил пользователя по реферальной ссылке", "3.1. Подал заявку на конкурс"], "top_actions_vals": [18638992, 4426878, 1846723, 1833158, 830646, 615248, 576204, 385219, 258834, 237895, 163240, 131748, 129672, 94790, 93903], "all_regions": ["Алтайский край", "Амурская область", "Архангельская область", "Астраханская область", "Белгородская область", "Брянская область", "Владимирская область", "Волгоградская область", "Вологодская область", "Воронежская область", "Донецкая Народная Республика", "Еврейская автономная область", "Забайкальский край", "Запорожская область", "Ивановская область", "Иркутская область", "Кабардино-Балкарская Республика", "Калининградская область", "Калужская область", "Камчатский край", "Карачаево-Черкесская Республика", "Кемеровская область - Кузбасс", "Кировская область", "Костромская область", "Краснодарский край", "Красноярский край", "Курганская область", "Курская область", "Ленинградская область", "Липецкая область", "Луганская Народная Республика", "Магаданская область", "Москва", "Московская область", "Мурманская область", "Ненецкий автономный округ", "Нижегородская область", "Новгородская область", "Новосибирская область", "Омская область", "Оренбургская область", "Орловская область", "Пензенская область", "Пермский край", "Приморский край", "Псковская область", "Республика Адыгея", "Республика Алтай", "Республика Башкортостан", "Республика Бурятия", "Республика Дагестан", "Республика Ингушетия", "Республика Калмыкия", "Республика Карелия", "Республика Коми", "Республика Крым", "Республика Марий Эл", "Республика Мордовия", "Республика Саха (Якутия)", "Республика Северная Осетия - Алания", "Республика Татарстан (Татарстан)", "Республика Тыва", "Республика Хакасия", "Ростовская область", "Рязанская область", "Самарская область", "Санкт-Петербург", "Саратовская область", "Сахалинская область", "Свердловская область", "Севастополь", "Смоленская область", "Ставропольский край", "Тамбовская область", "Тверская область", "Томская область", "Тульская область", "Тюменская область", "Удмуртская Республика", "Ульяновская область", "Хабаровский край", "Ханты-Мансийский автономный округ - Югра", "Херсонская область", "Челябинская область", "Чеченская Республика", "Чувашская Республика - Чувашия", "Чукотский автономный округ", "Ямало-Ненецкий автономный округ", "Ярославская область"], "top_regions": ["Москва", "Ростовская область", "Краснодарский край", "Санкт-Петербург", "Республика Татарстан (Татарстан)", "Самарская область", "Свердловская область", "Республика Башкортостан", "Московская область", "Нижегородская область", "Саратовская область", "Пензенская область", "Челябинская область", "Белгородская область", "Волгоградская область"], "top_regions_vals": [1277940, 348495, 326778, 278273, 272324, 236597, 233646, 223711, 204116, 184421, 178064, 167111, 154822, 154108, 151110], "region_data": {"Алтайский край": [15, 203, 2197, 8764, 24145, 32984, 43702, 57211, 72486, 85467, 91716], "Амурская область": [38, 287, 1459, 4212, 8699, 13011, 25845, 39262, 50804, 60888, 63067], "Архангельская область": [13, 180, 1178, 3874, 9749, 14229, 20833, 29934, 36980, 42928, 44798], "Астраханская область": [4, 91, 2688, 9743, 16161, 22722, 35239, 47884, 57113, 64636, 67642], "Белгородская область": [16, 216, 5574, 18832, 28422, 36156, 62227, 85496, 119701, 154108, 161257], "Брянская область": [1, 569, 2181, 5942, 12738, 17154, 24536, 32355, 40444, 47263, 49176], "Владимирская область": [1, 127, 2720, 5752, 12219, 16004, 24143, 32549, 41414, 49295, 53542], "Волгоградская область": [12, 164, 5297, 20302, 37777, 53454, 82340, 108185, 128152, 151110, 156333], "Вологодская область": [1, 205, 2267, 6552, 13366, 20825, 31882, 42267, 53567, 64883, 67250], "Воронежская область": [12, 131, 3056, 10433, 23678, 36001, 56446, 71162, 86079, 100359, 145782], "Донецкая Народная Республика": [0, 0, 4, 12, 26, 42, 4123, 10151, 18984, 26475, 29700], "Еврейская автономная область": [0, 25, 356, 1492, 3174, 4299, 7206, 9147, 10029, 11146, 11559], "Забайкальский край": [0, 77, 385, 2449, 10224, 13492, 17548, 25620, 52975, 63273, 64927], "Запорожская область": [0, 1, 5, 6, 8, 12, 403, 3810, 5663, 7455, 7791], "Ивановская область": [11, 328, 2519, 5493, 12258, 16812, 23193, 29539, 40403, 47839, 50027], "Иркутская область": [12, 241, 1928, 6602, 17323, 26052, 40632, 59162, 78854, 98636, 105659], "Кабардино-Балкарская Республика": [1, 46, 853, 2286, 8634, 13838, 23897, 33700, 42786, 48696, 50315], "Калининградская область": [5, 163, 2234, 7209, 14563, 20522, 32647, 43485, 54177, 63947, 66862], "Калужская область": [0, 113, 2173, 10317, 19467, 25133, 31745, 37685, 44911, 51124, 53922], "Камчатский край": [0, 105, 779, 2664, 5152, 6860, 9535, 13143, 15990, 18039, 18687], "Карачаево-Черкесская Республика": [0, 17, 1211, 3570, 6438, 8720, 11513, 15177, 18878, 21500, 22567], "Кемеровская область - Кузбасс": [4, 242, 2345, 10540, 26995, 50131, 71931, 102842, 122841, 143613, 151053], "Кировская область": [3, 336, 3965, 9800, 15990, 23633, 34802, 45178, 55523, 63441, 65960], "Костромская область": [1, 97, 1027, 5234, 9219, 12424, 17262, 21283, 25072, 28288, 29428], "Краснодарский край": [12, 454, 3637, 31214, 68810, 104222, 161512, 221047, 276875, 326778, 345063], "Красноярский край": [4, 169, 3731, 7902, 21058, 29184, 45074, 67481, 96185, 122057, 129791], "Курганская область": [9, 96, 1947, 7038, 13586, 19397, 29011, 37286, 44912, 51212, 53054], "Курская область": [12, 651, 4679, 9907, 19261, 28763, 38440, 49831, 62275, 70340, 72936], "Ленинградская область": [3, 425, 1801, 5021, 10841, 14911, 24683, 38874, 51558, 62499, 65812], "Липецкая область": [2, 197, 3685, 11222, 24372, 36660, 54178, 68649, 79954, 89591, 93754], "Луганская Народная Республика": [0, 1, 5, 9, 22, 31, 2433, 6961, 14625, 21825, 23980], "Магаданская область": [1, 35, 194, 789, 2736, 3830, 5462, 6874, 7960, 9151, 9438], "Москва": [58, 874, 6400, 18772, 93648, 152099, 221113, 454087, 842693, 1277940, 1306641], "Московская область": [15, 599, 4279, 17807, 44868, 72726, 125631, 152845, 180895, 204116, 221565], "Мурманская область": [3, 340, 1621, 3696, 6866, 11435, 21739, 29227, 35267, 40839, 42538], "Ненецкий автономный округ": [3, 51, 236, 539, 1086, 1442, 1983, 2663, 3074, 3419, 3562], "Нижегородская область": [5, 470, 4016, 14970, 32931, 49432, 101783, 124871, 155155, 184421, 190082], "Новгородская область": [7, 119, 1063, 3288, 7925, 20448, 30894, 39894, 46648, 51198, 52646], "Новосибирская область": [4, 117, 1283, 5118, 15292, 24361, 36936, 56591, 80705, 104757, 126062], "Омская область": [9, 152, 990, 7506, 17084, 21905, 32410, 44703, 53746, 65747, 69284], "Оренбургская область": [3, 709, 4380, 22161, 40266, 54453, 76941, 101992, 118473, 132691, 138998], "Орловская область": [3, 130, 1196, 4295, 10685, 14101, 20344, 25245, 30648, 37044, 38569], "Пензенская область": [3, 123, 1207, 103471, 112160, 119581, 129800, 142733, 155209, 167111, 169361], "Пермский край": [16, 139, 911, 2672, 13782, 21375, 35285, 52471, 75939, 97043, 104850], "Приморский край": [6, 106, 1794, 5669, 14089, 22961, 36577, 50744, 68598, 81892, 86764], "Псковская область": [2, 84, 538, 3925, 8136, 11860, 16734, 22016, 26310, 30142, 31935], "Республика Адыгея": [3, 137, 1305, 17041, 25783, 91584, 102979, 108099, 111907, 115110, 116346], "Республика Алтай": [17, 101, 609, 1636, 4543, 6355, 10079, 13002, 15511, 18332, 19295], "Республика Башкортостан": [3, 565, 5870, 18502, 39762, 58776, 98331, 136277, 192599, 223711, 236433], "Республика Бурятия": [30, 109, 560, 3354, 13038, 24078, 36333, 48037, 59582, 71097, 75680], "Республика Дагестан": [1, 406, 2012, 9994, 26714, 36403, 85708, 103097, 115612, 132391, 144996], "Республика Ингушетия": [0, 12, 1280, 1732, 2922, 4360, 7531, 13008, 15617, 20564, 21007], "Республика Калмыкия": [0, 11, 2589, 4123, 6651, 8418, 10613, 13727, 16297, 19755, 20804], "Республика Карелия": [5, 100, 657, 2475, 6031, 8170, 11750, 16325, 20744, 25143, 28185], "Республика Коми": [7, 107, 2156, 7653, 12831, 19590, 26903, 35058, 42601, 47870, 49445], "Республика Крым": [4, 358, 1569, 4682, 15162, 22888, 32325, 42276, 58738, 79247, 84431], "Республика Марий Эл": [0, 49, 1018, 4720, 9514, 17701, 25377, 32438, 38492, 45618, 48208], "Республика Мордовия": [1, 80, 2800, 10842, 20788, 26514, 34908, 40202, 49030, 57691, 58788], "Республика Саха (Якутия)": [0, 67, 909, 3835, 10677, 15952, 22075, 29998, 41653, 50354, 52493], "Республика Северная Осетия - Алания": [3, 126, 892, 2605, 6176, 8490, 20148, 24477, 28862, 32071, 32901], "Республика Татарстан (Татарстан)": [8, 252, 2744, 14199, 30256, 43247, 63016, 130016, 206717, 272324, 285775], "Республика Тыва": [1, 43, 2389, 3855, 11176, 13959, 18004, 23745, 29053, 34800, 38044], "Республика Хакасия": [0, 31, 473, 1311, 3971, 5660, 11964, 15876, 19338, 21803, 23257], "Ростовская область": [9, 933, 9327, 60511, 87953, 114383, 170458, 224678, 314906, 348495, 356862], "Рязанская область": [2, 167, 3070, 13650, 23282, 35825, 51619, 65738, 79671, 89292, 92957], "Самарская область": [18, 308, 2723, 19319, 42726, 68447, 127666, 169660, 210988, 236597, 242981], "Санкт-Петербург": [34, 571, 3971, 13101, 48614, 73632, 111155, 173798, 227535, 278273, 293522], "Саратовская область": [57, 454, 2290, 7462, 23495, 62147, 97001, 131944, 159714, 178064, 182834], "Сахалинская область": [0, 259, 1380, 3345, 7782, 32580, 38036, 41839, 45759, 49582, 50732], "Свердловская область": [11, 430, 5051, 14381, 38247, 62590, 95634, 143505, 191195, 233646, 245641], "Севастополь": [14, 75, 640, 2731, 7306, 10438, 16202, 23047, 29090, 35802, 37464], "Смоленская область": [3, 1544, 4486, 9267, 15975, 21798, 27818, 34553, 40284, 46314, 48525], "Ставропольский край": [5, 194, 1587, 35033, 55214, 65921, 83147, 102990, 125901, 148485, 160182], "Тамбовская область": [2, 331, 1955, 9683, 19939, 27095, 35647, 43476, 54006, 58879, 61116], "Тверская область": [3, 75, 5495, 10143, 18205, 23231, 30491, 37840, 45248, 104168, 112815], "Томская область": [4, 85, 804, 4937, 11227, 16332, 25315, 34730, 43055, 50502, 52878], "Тульская область": [5, 373, 4304, 13336, 22752, 38232, 72983, 94230, 117848, 134652, 140284], "Тюменская область": [3, 194, 3651, 21755, 35808, 50842, 69110, 85102, 102029, 116263, 121982], "Удмуртская Республика": [5, 122, 1689, 9124, 16422, 23308, 36822, 50537, 61482, 70814, 73150], "Ульяновская область": [3, 310, 1561, 6470, 14887, 20446, 34105, 45163, 57607, 79283, 90096], "Хабаровский край": [7, 164, 1173, 3531, 8837, 14695, 22184, 32719, 43532, 56577, 62620], "Ханты-Мансийский автономный округ - Югра": [1, 264, 3075, 10055, 25501, 40725, 59134, 78914, 97440, 121512, 130268], "Херсонская область": [0, 2, 9, 13, 23, 28, 188, 884, 2033, 2961, 3721], "Челябинская область": [12, 239, 4614, 14454, 23898, 37805, 68471, 97929, 128913, 154822, 164856], "Чеченская Республика": [0, 42, 1120, 2610, 7703, 9729, 17393, 26964, 38874, 47701, 49234], "Чувашская Республика - Чувашия": [5, 263, 4318, 17332, 26594, 36331, 57485, 94445, 104871, 114896, 119626], "Чукотский автономный округ": [0, 1, 63, 501, 1253, 1709, 2206, 2851, 3439, 4268, 4469], "Ямало-Ненецкий автономный округ": [1, 260, 4691, 11809, 17872, 23497, 33478, 43795, 54752, 67821, 70939], "Ярославская область": [0, 179, 931, 7087, 15677, 23586, 34316, 48143, 60094, 70844, 73685]}, "population": {"2016": 146.5, "2017": 146.8, "2018": 146.9, "2019": 146.7, "2020": 146.2, "2021": 145.5, "2022": 144.8, "2023": 144.1, "2024": 143.3, "2025": 142.8, "2026": 142.2, "2027": 141.5, "2028": 140.8, "2029": 140.0, "2030": 139.3}, "summary": {"registrations_cum_2025": 8914616, "registrations_per_year_2025": 1630467, "actions_cum_2025": 28041835, "num_regions": 89, "population_2025": 142.8}});
+init();
+</script>
+</body>
+</html>
