@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прогноз волонтёрского движения до 2030 | Стратегическое планирование</title>
+    <meta name="description" content="Аналитический дашборд прогнозирования количества волонтёров платформы ДОБРО до 2030 года с детализацией по регионам">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="bg-particles" id="bgParticles"></div>
+
+    <!-- Header with tabs -->
+    <header class="header" id="mainHeader">
+        <div class="header-content">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="url(#grad1)" stroke-width="2.5" fill="none"/>
+                        <path d="M20 10 L20 30 M10 20 L30 20" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round"/>
+                        <defs><linearGradient id="grad1" x1="0" y1="0" x2="40" y2="40"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="logo-title">Аналитика ДОБРО</h1>
+                    <p class="logo-subtitle">Стратегическое планирование • Прогноз до 2030</p>
+                </div>
+            </div>
+            <nav class="tab-nav" id="tabNav">
+                <button class="tab-btn active" data-tab="overview" id="tabOverview">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm10 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                    Общий обзор
+                </button>
+
+                <button class="tab-btn" data-tab="methodology" id="tabMethodology">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
+                    Методология
+                </button>
+            </nav>
+            <div class="header-meta">
+                <div class="header-badge"><span class="pulse-dot"></span>Актуальные данные</div>
+                <div class="header-date" id="headerDate"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- TAB 1: OVERVIEW -->
+    <!-- ============================================================ -->
+    <div class="tab-content active" id="tab-overview">
+        <!-- Filter Bar -->
+        <section class="section-p" style="padding-bottom: 0;">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">Регион</label>
+                    <select id="filterRegion" class="filter-select">
+                        <option value="all">Все регионы</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Направление</label>
+                    <select id="filterAction" class="filter-select">
+                        <option value="all">Все направления</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Возраст</label>
+                    <select id="filterAge" class="filter-select">
+                        <option value="all">Все возрасты</option>
+                    </select>
+                </div>
+                <button id="filterReset" class="filter-reset-btn">Сбросить</button>
+            </div>
+        </section>
+
+        <!-- KPI Cards -->
+        <section class="kpi-section">
+            <div class="kpi-grid">
+                <div class="kpi-card kpi-primary"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="kpi-content"><span class="kpi-label">Волонтёров в 2025</span><span class="kpi-value" data-target="" id="kpiVol">0</span><span class="kpi-delta positive" id="kpiGrowth"></span></div></div>
+                <div class="kpi-card kpi-forecast"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="kpi-content"><span class="kpi-label">Прогноз на 2030</span><span class="kpi-value" data-target="" id="kpiForecast">0</span><span class="kpi-delta positive">Демограф. модель (Росстат)</span></div></div>
+                <div class="kpi-card kpi-actions"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="kpi-content"><span class="kpi-label">Полезных действий</span><span class="kpi-value" data-target="" id="kpiActions">0</span><span class="kpi-delta">(2025 г.)</span></div></div>
+                <div class="kpi-card kpi-regions"><div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="kpi-content"><span class="kpi-label">Регионов</span><span class="kpi-value" data-target="" id="kpiReg">0</span><span class="kpi-delta" id="kpiActTypes"></span></div></div>
+            </div>
+        </section>
+
+        <!-- Main Forecast -->
+        <section class="section-p">
+            <div class="chart-card chart-main">
+                <div class="chart-header">
+                    <div><h2 class="chart-title">Прогноз количества волонтёров</h2><p class="chart-subtitle">Модель проникновения × демография Росстата, 95% CI</p></div>
+                </div>
+                <div class="chart-container"><canvas id="mainChart"></canvas></div>
+            </div>
+        </section>
+
+        <!-- Growth + Actions row -->
+        <section class="section-p chart-row">
+            <div class="chart-card">
+                <div class="chart-header"><div><h2 class="chart-title">Темп роста по годам</h2><p class="chart-subtitle">Год к году, %</p></div></div>
+                <div class="chart-container chart-container-sm"><canvas id="growthChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header"><div><h2 class="chart-title">Полезные действия</h2><p class="chart-subtitle">С доверительным интервалом 95%</p></div></div>
+                <div class="chart-container chart-container-sm"><canvas id="actionsChart"></canvas></div>
+            </div>
+        </section>
+
+        <!-- Registrations Chart -->
+        <section class="section-p">
+            <div class="chart-card chart-main">
+                <div class="chart-header">
+                    <div><h2 class="chart-title">Динамика новых регистраций</h2><p class="chart-subtitle">С учетом демографического прогноза (национальный уровень)</p></div>
+                </div>
+                <div class="chart-container"><canvas id="registrationsChart"></canvas></div>
+            </div>
+        </section>
+
+        <!-- Age Groups -->
+        <section class="section-p">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div><h2 class="chart-title">Динамика по возрастным группам (РФ)</h2><p class="chart-subtitle">С доверительным интервалом для каждой группы</p></div>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" data-chart="natAge" data-type="lines">Линии</button>
+                        <button class="chart-btn" data-chart="natAge" data-type="stacked">Стек</button>
+                    </div>
+                </div>
+                <div class="chart-container"><canvas id="natAgeChart"></canvas></div>
+            </div>
+        </section>
+
+        <!-- Top Regions + Actions -->
+        <section class="section-p chart-row">
+            <div class="chart-card">
+                <div class="chart-header"><div><h2 class="chart-title">Топ-15 регионов (прогноз 2030)</h2><p class="chart-subtitle">Полиномиальный прогноз</p></div></div>
+                <div class="chart-container chart-container-lg"><canvas id="topRegionsChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header"><div><h2 class="chart-title">Топ-10 действий (прогноз 2030)</h2><p class="chart-subtitle">Полиномиальный прогноз</p></div></div>
+                <div class="chart-container chart-container-lg"><canvas id="topActionsChart"></canvas></div>
+            </div>
+        </section>
+
+        <!-- National Forecast Table -->
+        <section class="section-p">
+            <div class="chart-card">
+                <div class="chart-header"><div><h2 class="chart-title">Прогнозная таблица (общероссийская)</h2><p class="chart-subtitle">Детальные значения с доверительными границами</p></div></div>
+                <div class="table-wrapper"><table class="forecast-table" id="nationalTable"><thead><tr><th>Год</th><th>Статус</th><th>Волонтёры</th><th>95% CI</th><th>Δ %</th><th>% нас.</th><th>Население</th><th>Действия</th></tr></thead><tbody id="nationalTableBody"></tbody></table></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TAB 2: METHODOLOGY -->
+    <!-- ============================================================ -->
+    <div class="tab-content" id="tab-methodology">
+        <!-- Hero -->
+        <section class="section-p">
+            <div class="chart-card methodology-hero">
+                <h2 class="method-hero-title">Методология</h2>
+                <p class="method-hero-subtitle">Как строится прогноз волонтёров до 2030 года</p>
+            </div>
+        </section>
+
+        <!-- How it works — single card -->
+        <section class="section-p">
+            <div class="chart-card">
+                <div class="method-section">
+                    <h2 class="method-title" style="margin-bottom:1.2rem">Как работает модель</h2>
+                    <div class="method-body">
+
+                        <!-- Step-by-step pipeline -->
+                        <div class="assumption-list" style="margin-bottom:1.5rem">
+                            <div class="assumption-item">
+                                <div class="assumption-num">1</div>
+                                <div>Для каждого региона и возрастной группы рассчитываем <strong>% проникновения</strong> = волонтёры / население по данным 2020–2025</div>
+                            </div>
+                            <div class="assumption-item">
+                                <div class="assumption-num">2</div>
+                                <div>Экстраполируем % проникновения <strong>полиномом 2-й степени</strong> до 2030 года</div>
+                            </div>
+                            <div class="assumption-item">
+                                <div class="assumption-num">3</div>
+                                <div>Умножаем прогноз % проникновения на <strong>официальный прогноз населения Росстата</strong> (средний вариант, бюллетень 2024–2037)</div>
+                            </div>
+                        </div>
+
+                        <!-- Key formulas — compact -->
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0.8rem;margin-bottom:1.5rem">
+                            <div class="formula-block">
+                                <div class="formula">Rate(t) = Волонтёры / Население</div>
+                                <div class="formula-label">% проникновения</div>
+                            </div>
+                            <div class="formula-block">
+                                <div class="formula">Прогноз(t) = σ(Ratê(t)) × Нас.(t)</div>
+                                <div class="formula-label">Прогноз = экстраполированный rate × население Росстата</div>
+                            </div>
+
+                        </div>
+
+                        <!-- Sources table -->
+                        <h3 style="margin-bottom:0.6rem">Источники данных</h3>
+                        <table class="method-comparison-table">
+                            <tr><th>Данные</th><th>Источник</th><th>Период</th></tr>
+                            <tr><td>Волонтёры</td><td>Платформа ДОБРО (52 108 записей, 89 регионов)</td><td>2020–2025</td></tr>
+                            <tr><td>Население по регионам</td><td>Росстат, бюллетень «Демографический прогноз до 2037 г.», лист 1.1.1</td><td>2024–2030</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Assumptions + CI — single compact card -->
+        <section class="section-p">
+            <div class="chart-card">
+                <div class="method-section">
+                    <h2 class="method-title" style="margin-bottom:1.2rem">Допущения и ограничения</h2>
+                    <div class="method-body">
+                        <div class="method-cols">
+                            <div class="method-col">
+                                <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:0.7rem">
+                                    <li>• Тренд проникновения сохраняется — внешние шоки не учитываются</li>
+                                    <li>• Данные 2025 г. могут быть неполными (экспорт в марте 2026)</li>
+                                    <li>• Регионы прогнозируются независимо, миграция не учитывается</li>
+                                    <li>• Рекомендуется обновлять прогноз при появлении новых данных Росстата</li>
+                                </ul>
+                            </div>
+                            <div class="method-col">
+                                <h3>Доверительный интервал (95%)</h3>
+                                <p>Полупрозрачная область на графиках — зона, где с вероятностью 95% окажется фактическое значение.</p>
+                                <ul>
+                                    <li>Интервал <strong>расширяется</strong> с горизонтом прогноза</li>
+                                    <li>Для <strong>малых регионов</strong> — шире, для крупных — уже</li>
+                                    <li>К 2030 году ±20–30% от прогноза</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Отдел стратегического планирования • Платформа ДОБРО • Аналитический отчёт 2026</p>
+    </footer>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
